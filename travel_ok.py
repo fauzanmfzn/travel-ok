@@ -158,7 +158,7 @@ def topuser():
         k.append({'nama':i[0], 'jumlah_order': i[1]})
     return jsonify(k)
 
-#crud rute
+# -----crud rute
 
 @app.route('/rute/', methods=['POST'])
 def create_rute():
