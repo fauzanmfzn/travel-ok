@@ -42,14 +42,14 @@ class rute(db.Model):
 
 class schedule(db.Model):
     id = db.Column(db.Integer, primary_key=True, index=True)
-    tanggal = db.Column(db.Date, nullable=False)
+    hari = db.Column(db.String, nullable=False)
     jam = db.Column(db.Time, nullable=False)
     order_jad = db.relationship('order', backref='jadwal', lazy='dynamic')
     rut_sche = db.relationship('rute', secondary=jad_rute, backref=('rut_sche'), passive_deletes=True)
     temp_cap = db.Column(db.Integer)
 
     def __repr__(self):
-        return f'schedule<{self.tanggal},{self.jam}>'
+        return f'schedule<{self.hari},{self.jam}>'
 
 class car(db.Model):
     id = db.Column(db.Integer, primary_key=True, index=True)
@@ -71,6 +71,12 @@ class order(db.Model):
     quantity = db.Column(db.Integer, nullable=False)
     total_harga = db.Column(db.Integer, nullable=False)
     car_id = db.Column(db.Integer, db.ForeignKey('car.id'), nullable=False)
+    nama = db.Column(db.String)
+    rute = db.Column(db.String)
+    hari = db.Column(db.String)
+    mobil = db.Column(db.String)
+    tanggal = db.Column(db.Date)
+    jam = db.Column(db.Time)
 
     def __repr__(self):
         return f'order<{self.user_id}>'
@@ -275,17 +281,17 @@ def create_schedule():
         }, 400
     if user1.is_admin == True:
         data = request.get_json()
-        if not 'tanggal_berangkat' in data or not 'jam_berangkat' in data:
+        if not 'hari_berangkat' in data or not 'jam_berangkat' in data:
             return {
                 'message':'invalid data'
             }, 400
-        cars=car.query.filter_by(spesifikasi=data['mobil']).first()
+        cars=car.query.filter_by(id=data['id_mobil']).first()
         x = schedule(
-            tanggal = data['tanggal_berangkat'],
+            hari = data['hari_berangkat'],
             jam = data['jam_berangkat'],
             temp_cap = cars.kapasitas
         )
-        rut = rute.query.filter_by(jalur=data['rute_jalan']).first()
+        rut = rute.query.filter_by(id=data['id_rute']).first()
         if not rut:
             return{
                 'message':'invalid rute'
@@ -336,7 +342,7 @@ def update_schedule(id):
     if user1.is_admin == True:
         data = request.get_json()
         sche = schedule.query.filter_by(id=id).first_or_404()
-        sche.tanggal = data['tanggal']
+        sche.hari = data['hari']
         sche.jam = data['jam']
         db.session.commit()
         return {
@@ -358,18 +364,18 @@ def search_jadwal(id):
             'message':'unauthorized'
         }, 400
     else:
-        h = db.engine.execute("select tanggal,jam from schedule inner join jad_rute on jad_rute.id_schedule = schedule.id where jad_rute.id_rute = {}".format(id))
+        h = db.engine.execute("select hari,jam from schedule inner join jad_rute on jad_rute.id_schedule = schedule.id where jad_rute.id_rute = {}".format(id))
         x = []
         for i in h:
-            x.append({'tanggal':i[0], 'jam':str(i[1])})
+            x.append({'hari':i[0], 'jam':str(i[1])})
         return jsonify(x)
 
 @app.route('/topschedule/')
 def top_schedule():
-    x = db.engine.execute('select schedule.tanggal,schedule_id, count(schedule_id) from "order" left join schedule on schedule.id = "order".schedule_id group by schedule_id, schedule.tanggal order by  count(*) desc')
+    x = db.engine.execute('select schedule.hari,schedule_id, count(schedule_id) from "order" left join schedule on schedule.id = "order".schedule_id group by schedule_id, schedule.hari order by  count(*) desc')
     k = []
     for i in x:
-        k.append({'tanggal':i[0], 'id_tanggal':i[1], 'total':i[2]})
+        k.append({'hari':i[0], 'id_hari':i[1], 'total':i[2]})
     return jsonify(k)
 
 #crud car
@@ -518,16 +524,22 @@ def create_order():
         }, 400
     else:
         data = request.get_json()
-        user2 = user1.query.filter_by(nama=data['nama']).first()
-        rut = rute.query.filter_by(jalur=data['rute']).first()
-        sche = schedule.query.filter_by(tanggal=data['tanggal']).filter_by(jam=data['jam']).first()
-        cars = car.query.filter_by(spesifikasi=data['mobil']).first()
+        user2 = user1.query.filter_by(id=data['id_nama']).first()
+        rut = rute.query.filter_by(id=data['id_rute']).first()
+        sche = schedule.query.filter_by(id=data['id_hari']).first()
+        cars = car.query.filter_by(id=data['id_mobil']).first()
         x = order(
             user_id = user1.id,
             rute_id = rut.id,
             schedule_id = sche.id,
             quantity = data['jumlah_tiket'],
             car_id = cars.id,
+            nama = user2.nama,
+            rute = rut.jalur,
+            hari = sche.hari,
+            mobil = cars.spesifikasi,
+            tanggal = data['tanggal_berangkat'],
+            jam = sche.jam
         )
         sche.temp_cap -= x.quantity
         if sche.temp_cap < 0:
