@@ -396,7 +396,7 @@ def create_car():
             'message':'masukkan data dengan benar'
         }, 400
     if user1.is_admin == True:
-        rut = rute.query.filter_by(jalur=data['rute']).first_or_404()
+        rut = rute.query.filter_by(id=data['id_rute']).first_or_404()
         x = car(
             kode = data['kode'],
             spesifikasi = data['spesifikasi'],
@@ -448,7 +448,7 @@ def update_cars(id):
     if user1.is_admin == True:
         data = request.get_json()
         cars = car.query.filter_by(id=id).first_or_404()
-        rut = rute.query.filter_by(jalur=data['rute']).first_or_404()
+        rut = rute.query.filter_by(id=data['id_rute']).first_or_404()
         cars.kode = data['kode']
         cars.spesifikasi = data['spesifikasi']
         cars.kapasitas = data['kapasitas']
