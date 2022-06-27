@@ -528,7 +528,7 @@ def create_order():
             schedule_id = sche.id,
             quantity = data['jumlah_tiket'],
             car_id = cars.id,
-        )
+git        )
         sche.temp_cap -= x.quantity
         if sche.temp_cap < 0:
             return {
