@@ -353,8 +353,25 @@ def update_schedule(id):
             'message':'unauthorized'
         }, 400
 
-@app.route('/jadwal/<id>/')
-def search_jadwal(id):
+# @app.route('/jadwal/<id>/')
+# def search_jadwal(id):
+#     aut_header = request.headers.get('Authorization')
+#     allow_user = is_authorized_user(aut_header)[0]
+#     allow_pass = is_authorized_user(aut_header)[1]
+#     user1 = user.query.filter_by(username=allow_user).filter_by(password=allow_pass).first()
+#     if not user1:
+#         return {
+#             'message':'unauthorized'
+#         }, 400
+#     else:
+#         h = db.engine.execute("select hari,jam from schedule inner join jad_rute on jad_rute.id_schedule = schedule.id where jad_rute.id_rute = {}".format(id))
+#         x = []
+#         for i in h:
+#             x.append({'hari':i[0], 'jam':str(i[1])})
+#         return jsonify(x)
+
+@app.route('/search-schedule-rute', methods=['POST'])
+def searchScheduleRute():
     aut_header = request.headers.get('Authorization')
     allow_user = is_authorized_user(aut_header)[0]
     allow_pass = is_authorized_user(aut_header)[1]
@@ -363,11 +380,13 @@ def search_jadwal(id):
         return {
             'message':'unauthorized'
         }, 400
-    else:
-        h = db.engine.execute("select hari,jam from schedule inner join jad_rute on jad_rute.id_schedule = schedule.id where jad_rute.id_rute = {}".format(id))
+    else :
+        data = request.get_json()
+        # key = data['jadwal']
+        k = db.engine.execute(f'''select hari, jam, rute.jalur from schedule inner join jad_rute jr on jr.id_schedule=schedule.id inner join rute on jr.id_rute=rute.id where hari ilike '{data['jadwal']}%%' ''')
         x = []
-        for i in h:
-            x.append({'hari':i[0], 'jam':str(i[1])})
+        for i in k:
+            x.append({'hari':i[0],'jam':str(i[1]),'rute':i[2]})
         return jsonify(x)
 
 @app.route('/topschedule/')
