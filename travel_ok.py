@@ -383,7 +383,7 @@ def searchScheduleRute():
     else :
         data = request.get_json()
         # key = data['jadwal']
-        k = db.engine.execute(f'''select hari, jam, rute.jalur from schedule inner join jad_rute jr on jr.id_schedule=schedule.id inner join rute on jr.id_rute=rute.id where hari ilike '{data['jadwal']}%%' ''')
+        k = db.engine.execute(f'''select hari, jam, rute.jalur from schedule inner join jad_rute jr on jr.id_schedule=schedule.id inner join rute on jr.id_rute=rute.id where hari ilike '{data['jadwal']}%%' and rute.jalur ilike '{data['rute']}%%' ''')
         x = []
         for i in k:
             x.append({'hari':i[0],'jam':str(i[1]),'rute':i[2]})
