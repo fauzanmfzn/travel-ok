@@ -1,11 +1,19 @@
 import base64
 from base64 import decode
 from sqlalchemy.orm import sessionmaker
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, make_response, request
 from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS, cross_origin
+from werkzeug.security import generate_password_hash, check_password_hash
+from functools import wraps
+import datetime
+import jwt
+
+# catatan: nama password adalah nama username tambahkan 123 tapi hilangkan kata aja
 
 app = Flask(__name__)
 db = SQLAlchemy(app)
+CORS(app, supports_credentials=True)
 
 app.config['SECRET_KEY'] = 'secret'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:SEPULUHAPRIL1999@localhost:5432/travel_ok?sslmode=disable'
@@ -31,14 +39,16 @@ class user(db.Model):
 
 class rute(db.Model):
     id = db.Column(db.Integer, primary_key=True, index=True)
-    jalur = db.Column(db.String, nullable=False)
+    kota_asal = db.Column(db.String, nullable=False)
+    kota_tujuan = db.Column(db.String, nullable=False)
+    durasi = db.Column(db.Time, nullable=False)
     tarif = db.Column(db.Integer, nullable=False)
     cars = db.relationship('car', backref='mobil', lazy='dynamic')
     sche_rut = db.relationship('schedule', secondary=jad_rute, backref='sche_rut', passive_deletes=True)
     order_rute = db.relationship('order', backref='jalan', lazy='dynamic')
 
     def __repr__(self):
-        return f'rute<{self.jalur},{self.tarif}>'
+        return f'rute<{self.kota_asal},{self.tarif}>'
 
 class schedule(db.Model):
     id = db.Column(db.Integer, primary_key=True, index=True)
@@ -72,11 +82,12 @@ class order(db.Model):
     total_harga = db.Column(db.Integer, nullable=False)
     car_id = db.Column(db.Integer, db.ForeignKey('car.id'), nullable=False)
     nama = db.Column(db.String)
-    rute = db.Column(db.String)
+    kotaasal = db.Column(db.String)
     hari = db.Column(db.String)
     mobil = db.Column(db.String)
     tanggal = db.Column(db.Date)
     jam = db.Column(db.Time)
+    kotatujuan = db.Column(db.String)
 
     def __repr__(self):
         return f'order<{self.user_id}>'
@@ -99,8 +110,29 @@ def is_authorized_user(aut):
     else:
         return [username, password]
 
+def token_req(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+
+        if 'x-access-token' in request.headers:
+            token = request.headers['x-access-token']
+
+        if not token:
+            return jsonify({'message':'token gak ada'})
+
+        try:
+            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms="HS256")
+            current_user = user.query.filter_by(username=data['username']).first()
+        except Exception as r:
+            return jsonify({'message':'token is invalid', 'error':str(r)})
+    
+        return f(current_user, *args, **kwargs)
+    return decorated
+
 @app.route('/')
-def home():
+@token_req
+def home(current_user):
     return {
         'message':'selamat datang di aplikasi berbasis web Travel-ok'
     }
@@ -118,14 +150,14 @@ def create_user():
         return {
             'message':'masukkan email dan passoword dengan benar'
         }, 400
+    
+    hashed_pass = generate_password_hash(data['password'], method='sha256')
     x = user(
         nama = data['name'],
         email = data['email'],
         username = data['username'],
-        password = data['password'],
-        is_admin = data.get('is_admin', False),
-        order_sum = data['jumlah_order'],
-        saldo = data['saldo']
+        password = hashed_pass,
+        is_admin = data.get('is_admin', False)
     )
     db.session.add(x)
     db.session.commit()
@@ -136,54 +168,72 @@ def create_user():
     }, 201
 
 @app.route('/user/', methods=['PUT'])
-def update_user():
-    aut_header = request.headers.get('Authorization')
-    allow_user = is_authorized_user(aut_header)[0]
-    allow_pass = is_authorized_user(aut_header)[1]
-    user1 = user.query.filter_by(username=allow_user).filter_by(password=allow_pass).first()
-    if not user1:
-        return {
-            'message':'unauthorized'
-        }, 400
-    else:
-        data = request.get_json()
-        user1.nama = data['nama']
-        user1.email = data['email']
-        user1.username = data['username']
-        user1.password = data['password']
-        db.session.commit()
-        return {
-            'message':'berhasil update data'
-        }
+@token_req
+def update_user(current_user):
+    data = request.get_json()
+    current_user.nama = data['nama']
+    current_user.email = data['email']
+    current_user.username = data['username']
+    db.session.commit()
+    return {
+        'message':'berhasil update data'
+    }
 
 @app.route('/topuser/')
-def topuser():
-    x = db.engine.execute('select nama, order_sum from "user" order by order_sum desc limit 3')
-    k = []
-    for i in x:
-        k.append({'nama':i[0], 'jumlah_order': i[1]})
-    return jsonify(k)
+@token_req
+def topuser(current_user):
+    if current_user.is_admin == True:
+        x = db.engine.execute('select nama, email, username, order_sum from "user" order by "user".order_sum desc nulls last limit 5')
+        k = []
+        for i in x:
+            k.append({
+                'nama':i[0],
+                'email': i[1],
+                'username':i[2],
+                'jumlah_order':i[3]
+                })
+        return jsonify(k)
+    else:
+        return {
+            'message':'kamu bukan admin'
+        }
+
+@app.route('/user/')
+@token_req
+def get_user(current_user):
+    return jsonify([{
+        'nama':x.nama,
+        'email':x.email,
+        'username':x.username
+    } for x in user.query.all()] 
+    )
+
+@app.route('/users')
+@token_req
+def get_one_user(current_user):
+    return jsonify({
+        'nama':current_user.nama,
+        'email':current_user.email,
+        'username':current_user.username,
+        'saldo':current_user.saldo,
+        'orderan':current_user.order_sum
+    })
 
 #------crud rute
 
 @app.route('/rute/', methods=['POST'])
-def create_rute():
-    aut_header = request.headers.get('Authorization')
-    allow_username = is_authorized_user(aut_header)[0]
-    allow_password = is_authorized_user(aut_header)[1]
-    user1 = user.query.filter_by(username=allow_username).filter_by(password=allow_password).first()
-    if not user1:
-        return {
-            'message':'unauthorized'
-        }, 400
-    if user1.is_admin == True:
+@token_req
+def create_rute(current_user):
+    if current_user.is_admin == True:
         data = request.get_json()
         if not 'rute' in data or not 'harga' in data:
             return {
                 'message':'invalid data'
             }, 400
         x = rute(
-            jalur = data['rute'],
+            kota_asal = data['rute'],
+            kota_tujuan = data['tujuan'],
+            durasi = data['lama'],
             tarif = data['harga']
         )
         db.session.add(x)
@@ -193,20 +243,14 @@ def create_rute():
         }
     else:
         return {
-            'message':'unauthorized'
+            'message':'You are not admin'
         }, 400
 
 @app.route('/rute/<id>/', methods=['DELETE'])
-def delete_rute(id):
-    aut_header = request.headers.get('Authorization')
-    allow_username = is_authorized_user(aut_header)[0]
-    allow_pass = is_authorized_user(aut_header)[1]
-    user1 = user.query.filter_by(username=allow_username).filter_by(password=allow_pass).first()
-    if not user1:
-        return {
-            'message':'unauthorized'
-        }, 400
-    if user1.is_admin == True:
+@token_req
+@cross_origin()
+def delete_rute(current_user, id):
+    if current_user.is_admin == True:
         rut = rute.query.filter_by(id=id).first_or_404()
         db.session.delete(rut)
         db.session.commit()
@@ -219,19 +263,14 @@ def delete_rute(id):
         }, 400
 
 @app.route('/rute/<id>/', methods=['PUT'])
-def update_rute(id):
-    aut_header = request.headers.get('Authorization')
-    allow_username = is_authorized_user(aut_header)[0]
-    allow_pass = is_authorized_user(aut_header)[1]
-    user1 = user.query.filter_by(username=allow_username).filter_by(password=allow_pass).first()
-    if not user1:
-        return {
-            'message':'unauthorized'
-        }, 400
-    if user1.is_admin == True:
+@token_req
+def update_rute(current_user,id):
+    if current_user.is_admin == True:
         data = request.get_json()
         rut = rute.query.filter_by(id=id).first_or_404()
-        rut.jalur = data['rute']
+        rut.kota_asal = data['rute']
+        rut.kota_tujuan = data['tujuan']
+        rut.durasi = data['lama']
         rut.tarif = data['harga']
         db.session.commit()
         return {
@@ -244,10 +283,10 @@ def update_rute(id):
 
 @app.route('/toprute/')
 def toprute():
-    x = db.engine.execute('select rute.jalur,rute_id, count(rute_id) from "order" left join rute on rute.id = "order".rute_id group by rute_id, rute.jalur order by  count(*) desc')
+    x = db.engine.execute('select rute.kota_asal,kotatujuan, sum(quantity) from "order" left join rute on rute.id = "order".rute_id group by kotatujuan, rute.kota_asal order by  count(*) desc')
     k = []
     for i in x:
-        k.append({'nama_rute':i[0], 'id_rute': i[1], 'total': i[2]})
+        k.append({'kota_asal':i[0], 'kota_tujuan': i[1], 'total': i[2]})
     return jsonify(k)
 
 @app.route('/search-rute/<id>/')
@@ -261,41 +300,56 @@ def search_rute(id):
             'message':'unauthorized'
         }, 400
     else:
-        x = db.engine.execute('select jalur,tarif from rute inner join jad_rute on jad_rute.id_rute = rute.id where jad_rute.id_schedule = {}'.format(id))
+        x = db.engine.execute('select kota_asal,tarif from rute inner join jad_rute on jad_rute.id_rute = rute.id where jad_rute.id_schedule = {}'.format(id))
         k = []
         for i in x:
             k.append({'rute':i[0], 'tarif':i[1]})
         return jsonify(k)
 
+@app.route('/rute/')
+@token_req
+def get_rute(current_user):
+    return jsonify([{
+        'id':x.id,
+        'kota_asal':x.kota_asal,
+        'kota_tujuan':x.kota_tujuan,
+        'tarif':x.tarif,
+        'durasi':str(x.durasi)
+    } for x in rute.query.all()]
+    )
+
 #crud schedule
 
 @app.route('/schedule/', methods=['POST'])
-def create_schedule():
-    aut_header = request.headers.get('Authorization')
-    allow_username = is_authorized_user(aut_header)[0]
-    allow_pass = is_authorized_user(aut_header)[1]
-    user1 = user.query.filter_by(username=allow_username).filter_by(password=allow_pass).first()
-    if not user1:
-        return {
-            'message':'unauthorized'
-        }, 400
-    if user1.is_admin == True:
+@token_req
+def create_schedule(current_user):
+    if current_user.is_admin == True:
         data = request.get_json()
         if not 'hari_berangkat' in data or not 'jam_berangkat' in data:
             return {
                 'message':'invalid data'
             }, 400
-        cars=car.query.filter_by(id=data['id_mobil']).first()
+
+        cars1 = car.query.filter_by(id=data['id_mobil']).first()
+        print(cars1.id)
+        if not cars1:
+            return{
+                'message cars':'error'
+            }, 400
+
+        rut = rute.query.filter_by(id=data['id_rute']).first()
+        print(rut.id)
+        if not rut:
+            return{
+                'message rute':rut
+            }, 400
+
+
         x = schedule(
             hari = data['hari_berangkat'],
             jam = data['jam_berangkat'],
-            temp_cap = cars.kapasitas
+            temp_cap = cars1.kapasitas
         )
-        rut = rute.query.filter_by(id=data['id_rute']).first()
-        if not rut:
-            return{
-                'message':'invalid rute'
-            }, 400
         x.sche_rut.append(rut)
         db.session.add(x)
         db.session.commit()
@@ -308,16 +362,10 @@ def create_schedule():
         }, 400
 
 @app.route('/schedule/<id>/', methods=['DELETE']) 
-def delete_sche(id):
-    aut_header = request.headers.get('Authorization')
-    allow_username = is_authorized_user(aut_header)[0]
-    allow_pass = is_authorized_user(aut_header)[1]
-    user1 = user.query.filter_by(username=allow_username).filter_by(password=allow_pass).first()
-    if not user1:
-        return {
-            'message':'unauthorized'
-        }, 400
-    if user1.is_admin == True:
+@token_req
+@cross_origin()
+def delete_sche(current_user,id):
+    if current_user.is_admin == True:
         data = schedule.query.filter_by(id=id).first()
         db.session.delete(data)
         db.session.commit()
@@ -330,16 +378,9 @@ def delete_sche(id):
         }, 400
 
 @app.route('/schedule/<id>/', methods=['PUT'])
-def update_schedule(id):
-    aut_header = request.headers.get('Authorization')
-    allow_username = is_authorized_user(aut_header)[0]
-    allow_pass = is_authorized_user(aut_header)[1]
-    user1 = user.query.filter_by(username=allow_username).filter_by(password=allow_pass).first()
-    if not user1:
-        return {
-            'message':'unauthorized'
-        }, 400
-    if user1.is_admin == True:
+@token_req
+def update_schedule(current_user,id):
+    if current_user.is_admin == True:
         data = request.get_json()
         sche = schedule.query.filter_by(id=id).first_or_404()
         sche.hari = data['hari']
@@ -355,49 +396,59 @@ def update_schedule(id):
 
 @app.route('/search-schedule-rute', methods=['POST'])
 def searchScheduleRute():
-    aut_header = request.headers.get('Authorization')
-    allow_user = is_authorized_user(aut_header)[0]
-    allow_pass = is_authorized_user(aut_header)[1]
-    user1 = user.query.filter_by(username=allow_user).filter_by(password=allow_pass).first()
-    if not user1:
-        return {
-            'message':'unauthorized'
-        }, 400
-    else :
-        data = request.get_json()
-        # key = data['jadwal']
-        k = db.engine.execute(f'''select hari, jam, rute.jalur from schedule inner join jad_rute jr on jr.id_schedule=schedule.id inner join rute on jr.id_rute=rute.id where hari ilike '{data['jadwal']}%%' and rute.jalur ilike '{data['rute']}%%' ''')
-        x = []
-        for i in k:
-            x.append({'hari':i[0],'jam':str(i[1]),'rute':i[2]})
-        return jsonify(x)
+    data = request.get_json()
+
+    k = db.engine.execute(f'''select kota_asal, kota_tujuan, schedule.id, car.id, rute.id, tarif, durasi, schedule.jam, car.spesifikasi from rute inner join jad_rute jr on jr.id_rute=rute.id inner join schedule on jr.id_schedule=schedule.id inner join car on rute.id=car.id_rute where rute.kota_asal ilike '{data['kota_asal']}%%' and rute.kota_tujuan ilike '{data['kota_tujuan']}%%' and schedule.hari ilike '{data['tanggal_berangkat']}%%' ''')
+    x = []
+    for i in k:
+        x.append({
+            'kota_asal':i[0],
+            'kota_tujuan':str(i[1]),
+            'id_schedule':i[2],
+            'id_car':i[3],
+            'id_rute':i[4],
+            'tarif':i[5],
+            'durasi':str(i[6]),
+            'jam':str(i[7]),
+            'merk':i[8]
+        })
+
+    return jsonify(x)
 
 @app.route('/topschedule/')
-def top_schedule():
-    x = db.engine.execute('select schedule.hari,schedule_id, count(schedule_id) from "order" left join schedule on schedule.id = "order".schedule_id group by schedule_id, schedule.hari order by  count(*) desc')
-    k = []
-    for i in x:
-        k.append({'hari':i[0], 'id_hari':i[1], 'total':i[2]})
-    return jsonify(k)
+@token_req
+def top_schedule(current_user):
+    if current_user.is_admin == True:
+        x = db.engine.execute('select schedule.hari, tanggal, sum(quantity) from "order" left join schedule on schedule.id = "order".schedule_id group by tanggal, schedule.hari order by  count(*) desc')
+        k = []
+        for i in x:
+            k.append({'hari':i[0], 'tanggal':str(i[1]), 'total':i[2]})
+        return jsonify(k)
+    else:
+        return {
+            'message':'kamu bukan admin'
+        }
+
+@app.route('/schedule/')
+@token_req
+def get_schedule(current_user):
+    return jsonify([{
+        'id':x.id,
+        'hari':x.hari,
+        'jam':str(x.jam)
+    }for x in schedule.query.all()])
 
 #crud car
 
 @app.route('/car/', methods=['POST'])
-def create_car():
-    aut_header = request.headers.get('Authorization')
-    allow_username = is_authorized_user(aut_header)[0]
-    allow_pass = is_authorized_user(aut_header)[1]
-    user1 = user.query.filter_by(username=allow_username).filter_by(password=allow_pass).first()
+@token_req
+def create_car(current_user):
     data = request.get_json()
-    if not user1:
-        return {
-            'message':'unauthorized'
-        }, 400
     if not 'kode' in data or not 'spesifikasi' in data or not 'kapasitas' in data:
         return {
             'message':'masukkan data dengan benar'
         }, 400
-    if user1.is_admin == True:
+    if current_user.is_admin == True:
         rut = rute.query.filter_by(id=data['id_rute']).first_or_404()
         x = car(
             kode = data['kode'],
@@ -416,16 +467,10 @@ def create_car():
         }, 400
 
 @app.route('/car/<id>/', methods=['DELETE'])
-def delete_car(id):
-    aut_header = request.headers.get('Authorization')
-    allow_username = is_authorized_user(aut_header)[0]
-    allow_pass = is_authorized_user(aut_header)[1]
-    user1 = user.query.filter_by(username=allow_username).filter_by(password=allow_pass).first()
-    if not user1:
-        return {
-            'message':'unauthorized'
-        }, 400
-    if user1.is_admin == True:
+@token_req
+@cross_origin()
+def delete_car(current_user,id):
+    if current_user.is_admin == True:
         data = car.query.filter_by(id=id).first_or_404()
         db.session.delete(data)
         db.session.commit()
@@ -438,19 +483,16 @@ def delete_car(id):
         }, 400
 
 @app.route('/car/<id>/', methods=['PUT'])
-def update_cars(id):
-    aut_header = request.headers.get('Authorization')
-    allow_username = is_authorized_user(aut_header)[0]
-    allow_pass = is_authorized_user(aut_header)[1]
-    user1 = user.query.filter_by(username=allow_username).filter_by(password=allow_pass).first()
-    if not user1:
-        return {
-            'message':'unauthorized'
-        }, 400
-    if user1.is_admin == True:
+@token_req
+def update_cars(current_user,id):
+    if current_user.is_admin == True:
         data = request.get_json()
-        cars = car.query.filter_by(id=id).first_or_404()
-        rut = rute.query.filter_by(id=data['id_rute']).first_or_404()
+        cars = car.query.filter_by(id=id).first()
+        rut = rute.query.filter_by(id=data['id_rute']).first()
+        if not rut:
+            return jsonify({
+                'm':rut
+            })
         cars.kode = data['kode']
         cars.spesifikasi = data['spesifikasi']
         cars.kapasitas = data['kapasitas']
@@ -464,29 +506,33 @@ def update_cars(id):
             'message':'unauthorized'
         }, 400
 
+@app.route('/car/')
+@token_req
+def get_car(current_user):
+    return jsonify([{
+        'id':x.id,
+        'kode':x.kode,
+        'merk':x.spesifikasi,
+        'kapasitas':x.kapasitas
+    }for x in car.query.all()])
+
 #fitur lainnya
 
 @app.route('/refund/<id>/', methods=['DELETE'])
-def refund_order(id):
-    aut_header = request.headers.get('Authorization')
-    allow_username = is_authorized_user(aut_header)[0]
-    allow_pass = is_authorized_user(aut_header)[1]
-    user1 = user.query.filter_by(username=allow_username).filter_by(password=allow_pass).first()
-    if not user1:
+@token_req
+@cross_origin()
+def refund_order(current_user, id):
+    if not current_user:
         return {
             'message':'unauthorized'
         }, 400
     else:
         data = order.query.filter_by(id=id).first()
         sche = schedule.query.filter_by(id=data.schedule_id).first()
-        user2 = user1.query.filter_by(id=data.user_id).first()
-        if user1 != user2:
-            return {
-                'message':'unauthorized'
-            }, 400
-        user2.saldo += data.total_harga
+        # user2 = current_user.query.filter_by(id=data.user_id).first()
+        current_user.saldo += data.total_harga
         sche.temp_cap += data.quantity
-        user2.order_sum -= 1
+        current_user.order_sum -= 1
         db.session.delete(data)
         db.session.commit()
         return {
@@ -494,72 +540,168 @@ def refund_order(id):
         }
 
 @app.route('/topup/', methods=['PUT'])
-def topup():
-    aut_header = request.headers.get('Authorization')
-    allow_user = is_authorized_user(aut_header)[0]
-    allow_pass = is_authorized_user(aut_header)[1]
-    user1 = user.query.filter_by(username=allow_user).filter_by(password=allow_pass).first()
-    if not user1:
-        return {
-            'message':'unauthorized'
-        }, 400
-    else:
-        data = request.get_json()
-        if user1.saldo is None:
-            user1.saldo = int()
-
-        user1.saldo += data['topup']
-        db.session.commit()
-        return {
-            'message':'berhasil topup! saldo anda kini sebesar Rp.'+str(user1.saldo)
-        }
+@token_req
+def topup(current_user):
+    data = request.get_json()
+    if current_user.saldo is None:
+        current_user.saldo = int()
+    current_user.saldo += data['topup']
+    db.session.commit()
+    return {
+        'message':'berhasil topup! saldo anda kini sebesar Rp.'+str(current_user.saldo)
+    }
 
 @app.route('/order/', methods=['POST'])
-def create_order():
-    aut_header = request.headers.get('Authorization')
-    allow_user = is_authorized_user(aut_header)[0]
-    allow_pass = is_authorized_user(aut_header)[1]
-    user1 = user.query.filter_by(username=allow_user).filter_by(password=allow_pass).first()
-    if not user1:
+@token_req
+def create_order(current_user):
+    data = request.get_json()
+    rut = rute.query.filter_by(id=data['id_rute']).first()
+    sche = schedule.query.filter_by(id=data['id_hari']).first()
+    cars = car.query.filter_by(id=data['id_mobil']).first()
+    x = order(
+        user_id = current_user.id,
+        rute_id = rut.id,
+        schedule_id = sche.id,
+        quantity = data['jumlah_tiket'],
+        car_id = cars.id,
+        nama = current_user.nama,
+        kotaasal = rut.kota_asal,
+        kotatujuan = rut.kota_tujuan,
+        hari = sche.hari,
+        mobil = cars.spesifikasi,
+        tanggal = data['tanggal_berangkat'],
+        jam = sche.jam
+    )
+    sche.temp_cap -= x.quantity
+    if sche.temp_cap < 0:
         return {
-            'message':'unauthorized'
-        }, 400
-    else:
-        data = request.get_json()
-        user2 = user1.query.filter_by(id=data['id_nama']).first()
-        rut = rute.query.filter_by(id=data['id_rute']).first()
-        sche = schedule.query.filter_by(id=data['id_hari']).first()
-        cars = car.query.filter_by(id=data['id_mobil']).first()
-        x = order(
-            user_id = user1.id,
-            rute_id = rut.id,
-            schedule_id = sche.id,
-            quantity = data['jumlah_tiket'],
-            car_id = cars.id,
-            nama = user2.nama,
-            rute = rut.jalur,
-            hari = sche.hari,
-            mobil = cars.spesifikasi,
-            tanggal = data['tanggal_berangkat'],
-            jam = sche.jam
-        )
-        sche.temp_cap -= x.quantity
-        if sche.temp_cap < 0:
-            return {
-                'message':'Maaf, keberangkatan untuk jadwal tersebut telah penuh, silahkan pilih jadwal lain'
-            }
-        x.total_harga = x.quantity * rut.tarif
-        if user1.saldo < x.total_harga:
-            return {
-                'message':'saldo anda tidak cukup, silahkan topup terlebih dahulu.'
-            }
-        user1.saldo -= x.total_harga
-        if user1.order_sum is None:
-            user1.order_sum = 0
-        
-        user1.order_sum += 1
-        db.session.add(x)
-        db.session.commit()
-        return {
-            'message':'orderan berhasil'
+            'message':'Maaf, keberangkatan untuk jadwal tersebut telah penuh, silahkan pilih jadwal lain'
         }
+    
+    today = datetime.date.today().strftime('%Y-%m-%d')
+    if today > data['tanggal_berangkat']:
+        sche.temp_cap = 40
+
+    x.total_harga = x.quantity * rut.tarif
+    if current_user.saldo < x.total_harga:
+        return {
+            'message':'saldo anda tidak cukup, silahkan topup terlebih dahulu.'
+        }
+    current_user.saldo -= x.total_harga
+    if current_user.order_sum is None:
+        current_user.order_sum = 0
+    
+    current_user.order_sum += 1
+    db.session.add(x)
+    db.session.commit()
+    return {
+        'message':'orderan berhasil'
+    }
+
+@app.route('/order/')
+@token_req
+def list_order(current_user):
+    k = db.engine.execute(f'''select "order".nama, kotaasal, kotatujuan, jam, tanggal, mobil, hari, total_harga, "order".id from "order" inner join "user" on "user".id = "order".user_id where "user".id = '{current_user.id}' ''')
+    x = []
+    for i in k:
+        x.append({
+            'nama':i[0],
+            'kota_asal':i[1],
+            'kota_tujuan':i[2],
+            'jam':str(i[3]),
+            'tanggal':str(i[4]),
+            'mobil':i[5],
+            'hari':i[6],
+            'total_harga':i[7],
+            'id':i[8]
+        })
+    return jsonify(x)
+
+@app.route('/login/', methods=['POST'])
+def login():
+    data = request.get_json()
+    userlogin = user.query.filter_by(username=data['username']).first()
+
+    if not userlogin:
+        return jsonify({'message':'no user found'})
+
+    if check_password_hash(userlogin.password ,data['password']):
+        token = jwt.encode({
+          'username':userlogin.username,
+          'is_admin':userlogin.is_admin,
+          'exp': datetime.datetime.utcnow()+datetime.timedelta(hours=24)
+        }, app.config['SECRET_KEY'], algorithm="HS256")
+        resp = make_response()
+        resp.set_cookie('token', token)
+        return resp
+
+    if not(check_password_hash(userlogin.password, data['password'])):
+        return jsonify({
+            'message':'invalid password'
+        })
+    
+@app.route('/profit/')
+@token_req
+def profit(current_user):
+    if current_user.is_admin == True:
+        k = db.engine.execute('select sum(total_harga) from "order"')
+        x = []
+        for i in k:
+            x.append({
+                'Total_profit':i[0]
+            })
+        return jsonify(x)
+    else:
+        return {
+            'message':'kamu bukan admin'
+        }
+
+@app.route('/sumuser/')
+@token_req
+def sum_user(current_user):
+    if current_user.is_admin == True:
+        k = db.engine.execute('select count("user".id) from "user"')
+        x = []
+        for i in k:
+            x.append({
+                'jumlah_user':i[0]
+            })
+        return jsonify(x)
+    else:
+        return {
+            'message':'kamu bukan admin'
+        }
+
+@app.route('/sumorder/')
+@token_req
+def sum_order(current_user):
+    if current_user.is_admin == True:
+        k = db.engine.execute('select count("order".id) from "order"')
+        x = []
+        for i in k:
+            x.append({
+                'jumlah_order':i[0]
+            })
+        return jsonify(x)
+    else:
+        return {
+            'message':'kamu bukan admin'
+        }
+
+@app.route('/newuser/')
+@token_req
+def latest_user(current_user):
+    if current_user.is_admin == True:
+        k = db.engine.execute('select nama, email, "user".id from "user" order by id desc limit 4')
+        x = []
+        for i in k:
+            x.append({
+                'nama':i[0],
+                'email':i[1]
+            })
+        return jsonify(x)
+    else:
+        return {
+            'message':'kamu bukan admin'
+        }
+

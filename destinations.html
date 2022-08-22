@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="https://kit.fontawesome.com/7a8257a6ed.js" crossorigin="anonymous"></script>
+    <script type="js/bootstrap.min.js"></script>
+    <link href="main.css" rel="stylesheet">
+    <title>Travel-Ok</title>
+</head>
+<body style="background-color: #f6f6f6;">
+    <!--awal section navbar dan banner atas  -->
+    <section class="atasDestination" style="padding-bottom: 100px;">
+        <div class="container-fluid">
+            <header class="d-flex flex-wrap justify-content-center py-3 bg-transparants fixed-top" id="navbar">
+                <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-light text-decoration-none" style="margin-left:115px; margin-right: 115px;">
+                    Travel-Ok
+                </a>
+                <ul class="nav nav-pills" style="margin-left:115px; margin-right: 115px;">
+                    <li class="nav-item"><a href="main.html" class="nav-link">
+                        Home
+                    </a></li>
+                    <li class="nav-item"><a href="destinations.html" class="nav-link">   
+                        Destination
+                    </a></li>
+                    <li class="nav-item"><a href="#partner" class="nav-link">
+                        Partners
+                    </a></li>
+                    <li hidden class="nav-item login">
+                        <a href="login.html" class="btn text-light" style="background-color: #ff4c15;">Login</a>
+                    </li>
+                    <li hidden class="nav-item ms-2 account">
+                        <div class="dropdown">
+                            <button class="btn btn-secondary dropdown-toggle" style="background-color:#ff4c15" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                                Account
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                                <li><a class="dropdown-item" href="/html/usermember.html">Profile</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item logout" href="login.html" onclick="delete_cookies()">Keluar</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                </ul>
+            </header>
+        </div>
+        <div class="container-fluid " style="padding:0px; margin:0px;">
+            <div class="position-absolute text-light position-absolute start-50 translate-middle text-center" style="margin-top: 270px;">
+                <h1 style="margin-top:150px;"><b>Cari tiket bus</b></h1>
+                <div class="card" style="width: 900px;background-color: #ff4c15; border-width: 3px;margin-top: 150px; height: 200px; padding-bottom: 200px;">
+                    <div class="card-body">
+                        <div class="row">
+                            <h5 class="text-white text-start"><b>Pemesanan Tiket Bus</b></h5>
+                        </div>
+                        <form class="searchrute">
+                            <div class="row text-start ">
+                                <div class="col">
+                                    <div class="form-group">
+                                        <label class="text-white"><b>Dari</b></label>
+                                        <div class="input-group">
+                                            <div class="input-group-text bg-white" style="border: 0;">
+                                                <i class="fa-solid fa-bus-simple"></i>
+                                            </div>
+                                            <input  class="form-control ps-0" type="text" placeholder="kota awal.." id="inputKotaAwal" style="border:none; border-bottom-left-radius: 0; border-top-left-radius: 0px;"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="form-group">
+                                        <label class="text-white"><b>Ke</b></label>
+                                        <div class="input-group">
+                                            <div class="input-group-text bg-white" style="border: 0;">
+                                                <i class="fa-solid fa-bus-simple"></i>
+                                            </div>
+                                            <input  class="form-control ps-0" type="text" placeholder="kota tujuan.." id="inputKotaTujuan" style="border:none; border-bottom-left-radius: 0; border-top-left-radius: 0px;"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="form-group">
+                                        <label class="text-white"><b>Tanggal pergi</b></label>
+                                        <div class="input-group">
+                                            <div class="input-group-text bg-white" style="border: 0;">
+                                                <i class="fa-solid fa-calendar-days"></i>
+                                            </div>
+                                            <input  class="form-control ps-0" type="date" placeholder="Stasiun tujuan.." id="tanggalBerangkat" style="border:none; border-bottom-left-radius: 0; border-top-left-radius: 0px;"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row text-start mt-2">
+                                <div class="col">
+                                    <div class="form-group">
+                                       
+                                    </div>
+                                </div>
+                                <div class="col"></div>
+                                <div class="col" style="padding-right:5px;">
+                                    <div class="form-group text-end" style="margin-top: 35px; padding-right:0;">
+                                        <button type="button" class="btn btn-outline-oren cariTiket">Cari Tiket</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <img src="/resources/bgrute.jpg" width="100%" height="400px"> 
+        </div>
+    </section>
+    <!-- akhir section navbar dan banner atas -->
+    
+    <!-- awal section searching rute -->
+    <section class="searchRute" style="margin-top: 100px;" id="load">
+        <div class="container">
+
+        </div>
+    </section>
+
+    <!-- section modal --> -->
+    <div class="modal fade removemodal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true"> 
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Order sekarang</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col text-start">
+                            <label for="inputTanggalBerangkat" class="form-label">Tanggal</label>
+                            <input type="text" class="form-control" id="inputTanggalBerangkat" aria-label="Disabled input example" disabled>
+                        </div>
+                        <div class="col text-start">
+                            <label for="inputTanggalBerangkat" class="form-label">Jumlah Tiket</label>
+                            <input type="number" min="1" class="form-control" id="inputTiket">
+                        </div>
+                        <div class="col text-start">
+                            <label for="inputTanggalBerangkat" class="form-label">Total Harga</label>
+                            <input type="text" class="form-control" id="inputTotalHarga" aria-label="Disabled input example" disabled>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" id="beliSekarang">Beli sekarang</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- akhir section searching rute -->
+    <script src="main.js"></script>
+    <script src="cookies.js"></script>
+    <script src="tujuan.js"></script>
+</body>
+</html>

@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="https://kit.fontawesome.com/7a8257a6ed.js" crossorigin="anonymous"></script>
+    <script type="js/bootstrap.min.js"></script>
+    <link href="main.css" rel="stylesheet">
+    <title>Travel-Ok</title>
+</head>
+<body>
+    <!-- awal navbar dan section 1 -->
+    <section class="atas">
+        <div class="container-fluid">
+            <header class="d-flex flex-wrap justify-content-center py-3 bg-transparants fixed-top" id="navbar">
+                <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-light text-decoration-none" style="margin-left:115px; margin-right: 115px;">
+                    Travel-Ok
+                </a>
+                <ul class="nav nav-pills" style="margin-left:115px; margin-right: 115px;">
+                    <li class="nav-item"><a href="main.html" class="nav-link">
+                        Home
+                    </a></li>
+                    <li class="nav-item"><a href="destinations.html" class="nav-link">   
+                        Destination
+                    </a></li>
+                    <!-- <li class="nav-item"><a href="#" class="nav-link">
+                        Schedule
+                    </a></li> -->
+                    <li class="nav-item"><a href="#partner" class="nav-link">
+                        Partners
+                    </a></li>
+                    <li  hidden class="nav-item login">
+                        <a href="login.html" class="btn text-light" style="background-color: #ff4c15;">Login</a>
+                    </li>
+                    <li hidden class="nav-item ms-2 account">
+                        <div class="dropdown">
+                            <button class="btn btn-secondary dropdown-toggle" style="background-color:#ff4c15" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                              Account
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                              <li><a class="dropdown-item" href="/html/usermember.html">Profile</a></li>
+                              <li><hr class="dropdown-divider"></li>
+                              <li><a class="dropdown-item logout" href="login.html" onclick="delete_cookies()">Keluar</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                </ul>
+            </header>
+        </div>
+        <div class="container-fluid" style="padding:0px; margin:0px;">
+            <div class="container position-absolute text-light" style="margin-left: 100px; margin-top: 150px;">
+                <h1><b>Explore the world</b></h1>
+                <div class="mt-1"><h1><b>with exciting people</b></h1></div>
+                <p class="mt-4"><b>We help people to travel around the world!</b></p>
+                <button hidden type="button" class="btn text-light rounded-pill mt-4 ps-5 pe-5 signIn" style="background-color:#ff4c15;">Sign In</button>
+                <div class="container" style="margin-top: 150px;">
+                    <div class="row">
+                      <div class="col-4">
+                        <h6><b>01</b></h6>
+                        <b>Choose place, activity and time</b>
+                        <p>Everyone can Choose a root and activity<br>according to his taste and possibilities</p>
+                      </div>
+                      <div class="col-4">
+                        <h6><b>02</b></h6>
+                        <h6><b>Finds people who have the same travel plan</b></h6>
+                        <p>You can find people with the same interests.<br>who know the route you've never traveled</p>
+                      </div>
+                      <div class="col-4">
+                        <h6><b>03</b></h6>
+                        <h6><b>Start chat and offer to go on a joint adventure </b></h6>
+                        <p>Discuss the details of your trip and have a great<br>time! You might find a great friend for life</p>
+                      </div>
+                    </div>
+                </div>
+            </div>
+            <img src="/resources/cityNight.jpg" width="100%"> 
+        </div>
+    </section>
+    <!-- akhir navbar dan section 1 -->
+
+    <!-- awal section our best service -->
+    <section class="bestService" style="margin-top: 50px;">
+        <div class="container">
+            <div class="container">
+                <div class="row">
+                    <div class="col-4"></div>
+                    <div class="col-4 text-center">
+                        <h2><b>Our Best Services</b></h2>
+                        <p>Why we are the best for our clients</p>
+                    </div>
+                    <div class="col-4"></div>
+                    <div class="col-4">
+                        <div class="card" style="width: 100%;">
+                            <div class="card-body text-center">
+                                <i class="fa-solid fa-earth-asia fa-7x mt-5" style="color: #ff4c15;"></i>
+                                <p class="card-text">
+                                    <h5><b>Best Destination</b></h5>
+                                    Lorem ipsum dolor sit amet, consectetur adipisicing elit. Doloremque nemo optio molestiae facere dolorum laudantium placeat magni, sit maiores facilis eveniet quidem quasi vel similique consectetur ipsum ullam non odit?
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="card" style="width: 100%;">
+                            <div class="card-body text-center">
+                                <i class="fa-solid fa-hand-holding-dollar fa-7x mt-5" style="color: #ff4c15;"></i>
+                                <p class="card-text">
+                                    <h5><b>Best Price Guaranteed</b></h5>
+                                    Lorem ipsum dolor sit amet consectetur, adipisicing elit. Ipsum, illum ducimus itaque voluptatum cum, fuga quam veniam dolorum vero nemo ab quisquam repellendus aut necessitatibus nulla debitis.
+                                </p>
+                            </div>
+                          </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="card" style="width: 100%;">
+                            <div class="card-body text-center">
+                                <i class="fa-solid fa-bolt fa-7x mt-5" style="color: #ff4c15;"></i>
+                                <h5><b>Instant Booking</b></h5>
+                                <p class="card-text">
+                                    Lorem ipsum dolor sit amet, consectetur adipisicing elit. Dolores, architecto itaque debitis, omnis tenetur suscipit deleniti sapiente possimus cupiditate, tempore repellendus laborum! Facilis nam quo alias! Corrupti ad aliquid natus?
+                                </p>
+                            </div>
+                          </div>
+                    </div>
+                </div>
+              </div>
+        </div>
+    </section>
+    <!-- akhir section best service -->
+
+    <!-- awal section destination -->
+    <section class="destination">
+        <div class="container" style="margin-top: 100px;">
+            <div class="row">
+                <div class="col-4"></div>
+                <div class="col-4 text-center">
+                    <h2><b>Best Destination</b></h2>
+                    <p>Find out what the best destination for you</p>
+                </div>
+                <div class="col-4"></div>
+                <div class="row">
+                    <div class="col-4 text-center aja">
+                        <img src="/resources/bali.jpg" width="360" height="200">
+                        <h2><p class="teks"><b>Bali</b></p></h2>
+                    </div>
+                    <div class="col-4 text-center aja">
+                        <img src="/resources/lombok.jpg" width="360" height="200">
+                        <h2><p class="teks"><b>Lombok</b></p></h2>
+                    </div>
+                    <div class="col-4 text-center aja">
+                        <img src="https://i.postimg.cc/KvV5Q6QS/jakarta-Api.jpg" width="360" height="200">
+                        <h2><p class="teks"><b>Bandung</b></p></h2>
+                    </div>
+                    <div class="col-4 mt-3 text-center aja">
+                        <img src="/resources/ntb.jpg" width="360" height="200">
+                        <h2><p class="teks"><b>NTB</b></p></h2>
+                    </div>
+                    <div class="col-4 mt-3 text-center aja">
+                        <img src="/resources/raja_ampat.jpg" width="360" height="200">
+                        <h2><p class="teks"><b>Raja Ampat</b></p></h2>
+                    </div>
+                    <div class="col-4 mt-3 text-center aja">
+                        <img src="/resources/toba.jpg" width="360" height="200">
+                        <h2><p class="teks"><b>Toba</b></p></h2>
+                    </div>
+                </div>
+        </div>
+    </section>
+    <!-- akhir section destination -->
+
+    <!-- awal section partner -->
+    <section class="testi" style="margin-top: 70px;" id="partner">
+        <div class="container">
+            <div class="row justify-content-left">
+                <div class="col-4">
+                    <h3><b>Partner Travel</b></h3>
+                    <h6 style="margin-top: 20px;"><b>Operator Travel Favorit Anda</b></h6>
+                    <p>Baik untuk liburan atau pulang ke rumah,<br>
+                    kini anda bisa pesan tiket travel favorit anda<br>
+                    dengan lebih mudah bersama kami</p>
+                </div>
+                <div class="col-7" style="margin-right: 65px;">
+                    <div class="row">
+                        <div class="col m-4"><img src="/resources/garudaIndo.jpg" width="160" style="float: right;"></div>
+                        <div class="col m-4"><img src="/resources/lionAir.png" width="160" style="float: right;"></div>
+                        <div class="col m-4"><img src="/resources/superAir.png" width="160" style="float: right;"></div>
+                        <div class="col m-4"><img src="/resources/susiair.jpg" width="160" style="float: right;"></div>
+                        <div class="col m-4"><img src="/resources/batik.png" width="160" style="float: right;"></div>
+                        <div class="col m-4"><img src="/resources/emirates1.jpg" width="160" style="float: right;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- akhir section partner -->
+
+    <!-- awal section footer -->
+    <section class="footer" style="margin-top: 70px;">
+        <div class="container" style="padding-bottom: 40px;">
+            <div class="row text-left">
+                <div class="col">
+                    <div class="row" style="margin-top: 40px;">
+                        <h5 class="text-light"><b>Travel-ok</b></h5>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-3"><img src="/resources/certifications/asita.svg" width="45"></div>
+                        <div class="col-3"><img src="/resources/certifications/bsi.png" width="45"></div>
+                        <div class="col-3"><img src="/resources/certifications/iata.svg" width="45"></div>
+                        <div class="col-3"><img src="/resources/certifications/pci-dss.png" width="45"></div>
+                        <div class="col-3"><img src="/resources/certifications/rapid-ssl.svg" width="45"></div>
+                        <div class="col-3"><img src="/resources/certifications/verisign.svg" width="45"></div>
+                    </div>
+                    <div class="row mt-3">
+                        <p class="text-light">Partner pembayaran</p>
+                        <div class="col-3">
+                            <img src="/resources/payment-partners/alfamart-small.png" width="55" height="40" class="bg-white rounded">
+                        </div>
+                        <div class="col-3">
+                            <img src="/resources/payment-partners/visa.png" width="55" height="40" class="bg-white rounded">
+                        </div>
+                        <div class="col-3">
+                            <img src="/resources/payment-partners/prima.png" width="55" height="40" class="bg-white rounded">
+                        </div>
+                        <div class="col-3">
+                            <img src="/resources/payment-partners/alfamidi.png" width="55" height="40" class="bg-white rounded">
+                        </div>
+                        <div class="col-3">
+                            <img src="/resources/payment-partners/alto-small.png" width="55" height="40" class="bg-white rounded mt-2">
+                        </div>
+                        <div class="col-3">
+                            <img src="/resources/payment-partners/alto.png" width="55" height="40" class="bg-white rounded mt-2">
+                        </div>
+                        <div class="col-3">
+                            <img src="/resources/payment-partners/atm-bersama-small.png" width="55" height="40" class="bg-white rounded mt-2">
+                        </div>
+                        <div class="col-3">
+                            <img src="/resources/payment-partners/atm-bersama.png" width="55" height="40" class="bg-white rounded mt-2">
+                        </div>
+                        <div class="col-3">
+                            <img src="/resources/payment-partners/bca-klikpay-small.png" width="55" height="40" class="bg-white rounded mt-2">
+                        </div>
+                        <div class="col-3">
+                            <img src="/resources/payment-partners/bca-klikpay.png" width="55" height="40" class="bg-white rounded mt-2">
+                        </div>
+                        <div class="col-3">
+                            <img src="/resources/payment-partners/bca-small.png" width="55" height="40" class="bg-white rounded mt-2">
+                        </div>
+                        <div class="col-3">
+                            <img src="/resources/payment-partners/bca.png" width="55" height="40" class="bg-white rounded mt-2">
+                        </div>
+                        <div class="col-3">
+                            <img src="/resources/payment-partners/bni-small.png" width="55" height="40" class="bg-white rounded mt-2">
+                        </div>
+                        <div class="col-3">
+                            <img src="/resources/payment-partners/bni.png" width="55" height="40" class="bg-white rounded mt-2">
+                        </div>
+                        <div class="col-3">
+                            <img src="/resources/payment-partners/bri-small.png" width="55" height="40" class="bg-white rounded mt-2">
+                        </div>
+                        <div class="col-3">
+                            <img src="/resources/payment-partners/bri.png" width="55" height="40" class="bg-white rounded mt-2">
+                        </div>
+                    </div>
+                </div>
+                <div class="col ms-5">
+                    <div class="row" style="margin-top: 40px;">
+                        <p class="text-light">Tentang kami</p>
+                        <ul class="clearfix">
+                            <li style="list-style-type: none; color: grey;">Cara pesan</li>
+                            <li class="mt-1" style="list-style-type: none; color: grey;">Hubungi Kami</li>
+                            <li class="mt-1" style="list-style-type: none; color: grey;">Pusat Bantuan</li>
+                            <li class="mt-1" style="list-style-type: none; color: grey;">Karier</li>
+                            <li class="mt-1" style="list-style-type: none; color: grey;">Tentang Kami</li>
+                        </ul>
+                    </div>
+                    <div class="row mt-1">
+                        <p class="text-light mt-1">Follow kami di</p>
+                        <div class="row pt-1">
+                            <div class="col-1 pt-1">
+                                <i class="fa-brands fa-twitter" style="color: grey;"></i>
+                            </div>
+                            <div class="col-1" style="color: grey;">
+                                Twitter
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-1">
+                                <i class="fa-brands fa-facebook" style="color: grey;"></i>
+                            </div>
+                            <div class="col-1" style="color: grey;">
+                                Facebook
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-1">
+                                <i class="fa-brands fa-instagram" style="color:grey;"></i>
+                            </div>
+                            <div class="col-1" style="color: grey;">
+                                Instagram
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col ms-5">
+                    <div class="row" style="margin-top:40px;">
+                        <p class="text-white">Produk</p>
+                        <ul>
+                            <li style="list-style-type: none; color: grey;">Paylater</li>
+                            <li class="mt-1" style="list-style-type: none; color: grey;">Tiket Pesawat</li>
+                            <li class="mt-1" style="list-style-type: none; color: grey;">Gift Voucher</li>
+                            <li class="mt-1" style="list-style-type: none; color: grey;">Antar Jemput Bandara</li>
+                            <li class="mt-1" style="list-style-type: none; color: grey;">Booking Online</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col ms-5">
+                    <div class="row" style="margin-top:40px;">
+                        <p class="text-white">Lainnya</p>
+                        <ul>
+                            <li style="list-style-type: none; color: grey;">Flash sale</li>
+                            <li class="mt-1" style="list-style-type: none; color: grey;">Kebijakan Privasi</li>
+                            <li class="mt-1" style="list-style-type: none; color: grey;">Syarat & Ketentuan</li>
+                            <li class="mt-1" style="list-style-type: none; color: grey;">Daftarkan Akomodasi Anda</li>
+                            <li class="mt-1" style="list-style-type: none; color: grey;">Jadi Partner</li>
+                        </ul>
+                    </div>
+                    <div class="row mt-1">
+                        <p class="text-white mt-1"><b>Download App</b></p>
+                        <div class="col">
+                            <img src="/resources/app-store.svg" width="100">
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col">
+                            <img src="/resources/play-store.svg" width="100">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- akhir section footer -->
+
+    <script src="main.js"></script>
+    <script src="cookies.js"></script>
+
+</body>
+</html>
